@@ -1,5 +1,6 @@
-import imp
+import importlib.util
 import os
+import sys
 import inspect
 import bpy
 import bmesh
@@ -145,10 +146,12 @@ def getModule(ruleFile):
     # remove extension from ruleFile if it was provided
     ruleFile = os.path.splitext(ruleFile)[0]
     moduleName = os.path.basename(ruleFile)
-    _file, _pathname, _description = imp.find_module(
-        moduleName, [os.path.dirname(ruleFile)])
-    module = imp.load_module(moduleName, _file, _pathname, _description)
-    _file.close()
+    spec = importlib.util.spec_from_file_location(moduleName, ruleFile + ".py")
+    if spec is None:
+        raise ImportError("BCGA rule file not found: %s.py" % ruleFile)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[moduleName] = module
+    spec.loader.exec_module(module)
     return module
 
 
