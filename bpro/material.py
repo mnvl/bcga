@@ -12,7 +12,9 @@ class MaterialManager:
         self.engines = {
             "BLENDER_RENDER": BlenderRender(),
             "CYCLES": CyclesRender(),
-            "EEVEE": CyclesRender()
+            "BLENDER_EEVEE": CyclesRender(),
+            "BLENDER_EEVEE_NEXT": CyclesRender(),
+            "BLENDER_WORKBENCH": CyclesRender(),
         }
 
     def getMaterial(self, name):
@@ -109,8 +111,8 @@ class CyclesRender(Render):
         nodes = material.node_tree
         links = nodes.links
         nodes = nodes.nodes
-        # there must be two connected nodes by default: ShaderNodeBsdfDiffuse and ShaderNodeOutputMaterial
-        diffuseShader = nodes[1]
+        # the default node material has one BSDF (Diffuse before 2.80, Principled since) and an output
+        diffuseShader = next(n for n in nodes if n.type in ("BSDF_PRINCIPLED", "BSDF_DIFFUSE"))
 
         # create ShaderNodeTexImage
         textureNode = nodes.new("ShaderNodeTexImage")
